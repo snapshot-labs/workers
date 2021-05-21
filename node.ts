@@ -11,30 +11,35 @@ async function sha256(message) {
 }
 
 async function handleRequest(event) {
-	const request = event.request
-	const body = await request.clone().text()
-	console.log(JSON.stringify(body));
+	const request = event.request;
+	const body = await request.clone().text();
+	const { method: rpcMethod = null, params = null } = body ? JSON.parse(body) : {};
+  const isEthCall = rpcMethod === "eth_call" && params && params.length > 1 && params[1] !== "latest"
+	const isEthCallLatest = rpcMethod === "eth_call" && params && params.length > 1 && params[1] === "latest"
+	let response = null;
+	const cache = caches.default;
+  let cacheKey = null;
 
-	const hash = await sha256(body)
-	const cacheUrl = new URL(request.url)
-	cacheUrl.pathname = "/node" + cacheUrl.pathname + hash
-	const cacheKey = new Request(cacheUrl.toString(), {
-		headers: request.headers,
-		method: "GET",
-	})
-	const cache = caches.default
-
-	// Find the cache key in the cache
-	let response = await cache.match(cacheKey)
+	if(isEthCall){
+		const hash = await sha256(JSON.stringify(params))
+		const cacheUrl = new URL(request.url)
+		cacheUrl.pathname = "/snapshot" + cacheUrl.pathname + hash
+		cacheKey = new Request(cacheUrl.toString(), {
+			headers: request.headers,
+			method: "GET",
+		})
+		// Find the cache key in the cache
+		response = await cache.match(cacheKey)
+	}
 
 	if (!response) {
 		let url = 'https://eth-archival.gateway.pokt.network/v1/60a29db1ff3a4800349d2407'
-		if (body.includes('latest')) {
+		if (isEthCallLatest) {
 			url = 'https://cloudflare-eth.com'
 		}
 		const modifiedRequest = new Request(url, request)
 		response = await fetch(modifiedRequest)
-		if (!body.includes('latest')) {
+		if (isEthCall) {
 			event.waitUntil(cache.put(cacheKey, response.clone()))
 		}
 	}
