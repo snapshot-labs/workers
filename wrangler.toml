@@ -1,0 +1,6 @@
+name = "snapshot-workers"
+type = "javascript"
+
+account_id = "1234"
+workers_dev = true
+zone_id = ""
