@@ -25,9 +25,10 @@ async function handleRequest(event) {
 
 	if (!response) {
 		response = await fetch(imageRequest, options)
+    response = new Response(response.body, response)
     response.headers.append("Cache-Control", "s-maxage=604800")
 		event.waitUntil(cache.put(cacheKey, response.clone()))
 	}
-  
+
 	return response
 }
