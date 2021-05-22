@@ -15,12 +15,9 @@ async function handleRequest(event) {
 	const imageURL = url.searchParams.get("img")
 	
 	const cache = caches.default
-	const cacheUrl = new URL(request.url)
-	cacheUrl.pathname = "/snapshot" + imageURL
-	cacheKey = new Request(cacheUrl.toString(), {
-		headers: request.headers,
-		method: "GET",
-	})
+  const cacheUrl = new URL(request.url)
+  const cacheKey = new Request(cacheUrl.toString(), request)
+
 	let response = await cache.match(cacheKey)
 	const imageRequest = new Request(imageURL, {
 		headers: request.headers,
@@ -28,7 +25,9 @@ async function handleRequest(event) {
 
 	if (!response) {
 		response = await fetch(imageRequest, options)
+    response.headers.append("Cache-Control", "s-maxage=604800")
 		event.waitUntil(cache.put(cacheKey, response.clone()))
 	}
+  
 	return response
 }
