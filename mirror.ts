@@ -1,8 +1,9 @@
 addEventListener("fetch", event => {
-	event.respondWith(handleRequest(event.request))
+	event.respondWith(handleRequest(event))
 })
 
-async function handleRequest(request) {
+async function handleRequest(event) {
+	const request = event.request
 	let url = new URL(request.url)
 
 	let options = { cf: { image: {} } }
@@ -12,10 +13,22 @@ async function handleRequest(request) {
 	options.cf.image.height = 400
 
 	const imageURL = url.searchParams.get("img")
-
+	
+	const cache = caches.default
+	const cacheUrl = new URL(request.url)
+	cacheUrl.pathname = "/snapshot" + imageURL
+	cacheKey = new Request(cacheUrl.toString(), {
+		headers: request.headers,
+		method: "GET",
+	})
+	let response = await cache.match(cacheKey)
 	const imageRequest = new Request(imageURL, {
 		headers: request.headers,
 	})
 
-	return fetch(imageRequest, options)
+	if (!response) {
+		response = await fetch(imageRequest, options)
+		event.waitUntil(cache.put(cacheKey, response.clone()))
+	}
+	return response
 }
