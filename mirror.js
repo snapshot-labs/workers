@@ -19,16 +19,19 @@ async function handleRequest(event) {
   const cacheKey = new Request(cacheUrl.toString(), request);
 
   let response = await cache.match(cacheKey);
-  const imageRequest = new Request(imageURL, {
-    headers: request.headers
-  });
-
+  
   if (!response) {
+    const imageRequest = new Request(imageURL, {
+      headers: request.headers
+    });
     response = await fetch(imageRequest, options);
     response = new Response(response.body, response);
     response.headers.append('Cache-Control', 's-maxage=604800');
     event.waitUntil(cache.put(cacheKey, response.clone()));
+  } else {
+    response = new Response(response.body, response);
   }
-
+  
+  response.headers.set('Cache-Control', 'max-age=31536000');
   return response;
 }
