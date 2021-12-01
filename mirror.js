@@ -1,9 +1,8 @@
 addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event));
+  event.respondWith(handleRequest(event, event.request));
 });
 
-async function handleRequest(event) {
-  const request = event.request;
+async function handleRequest(event, request) {
   let url = new URL(request.url);
 
   let options = { cf: { image: {} } };
@@ -13,7 +12,9 @@ async function handleRequest(event) {
   options.cf.image.height = 400;
 
   const imageURL = url.searchParams.get('img');
+  if (!imageURL) return new Response('Missing "img" value', { status: 400 })
 
+  const { pathname } = new URL(imageURL)
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
   const cacheKey = new Request(cacheUrl.toString(), request);
@@ -22,6 +23,10 @@ async function handleRequest(event) {
   const imageRequest = new Request(imageURL, {
     headers: request.headers
   });
+
+  if (/\.(svg)$/i.test(pathname)) {
+    return new Response('Disallowed file extension', { status: 400 })
+  }
 
   if (!response) {
     response = await fetch(imageRequest, options);
