@@ -24,14 +24,14 @@ async function handleRequest(event, request) {
     headers: request.headers
   });
 
-  if (/\.(svg)$/i.test(pathname)) {
-    return new Response('Disallowed file extension', { status: 400 })
-  }
-
   if (!response) {
     response = await fetch(imageRequest, options);
-    response = new Response(response.body, response);
-    response.headers.append('Cache-Control', 's-maxage=604800');
+    if (response.headers.get("content-type") === 'image/svg+xml') {
+      response = new Response('Disallowed file extension', { status: 400 })
+    } else {
+      response = new Response(response.body, response);
+    }
+    response.headers.append('Cache-Control', 's-maxage=60');
     event.waitUntil(cache.put(cacheKey, response.clone()));
   }
 
