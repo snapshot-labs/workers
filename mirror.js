@@ -14,7 +14,6 @@ async function handleRequest(event, request) {
   const imageURL = url.searchParams.get('img');
   if (!imageURL) return new Response('Missing "img" value', { status: 400 })
 
-  const { pathname } = new URL(imageURL)
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
   const cacheKey = new Request(cacheUrl.toString(), request);
