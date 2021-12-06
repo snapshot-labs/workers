@@ -27,7 +27,6 @@ async function handleRequest(event, request) {
   }
 
   const type = response.headers.get("content-type");
-  console.log(type)
   if (type.includes('image/svg+xml') || type.includes('text/html')) {
     response = new Response('Disallowed file extension', { status: 400 })
   }
