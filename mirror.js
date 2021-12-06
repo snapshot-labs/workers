@@ -9,8 +9,8 @@ async function handleRequest(event) {
   let options = { cf: { image: {} } };
   options.cf.image.fit = 'cover';
   options.cf.image.anim = false;
-  options.cf.image.width = 400;
-  options.cf.image.height = 400;
+  options.cf.image.width = 240;
+  options.cf.image.height = 240;
 
   const imageURL = url.searchParams.get('img');
 
@@ -19,14 +19,20 @@ async function handleRequest(event) {
   const cacheKey = new Request(cacheUrl.toString(), request);
 
   let response = await cache.match(cacheKey);
-  const imageRequest = new Request(imageURL, {
-    headers: request.headers
-  });
-
-  if (!response) {
+  const hasCache = response ? true : false;
+  
+  if (!hasCache) {
+    const imageRequest = new Request(imageURL, { headers: request.headers });
     response = await fetch(imageRequest, options);
-    response = new Response(response.body, response);
-    response.headers.append('Cache-Control', 's-maxage=604800');
+  }
+
+  response = new Response(response.body, response);
+  // response.headers.append('Cache-Control', 's-maxage=31536000');
+  // response.headers.append('Cache-Control', 'max-age=31536000');
+  response.headers.append('Cache-Control', 's-maxage=60');
+  response.headers.append('Cache-Control', 'max-age=60');
+  
+  if (!hasCache) {
     event.waitUntil(cache.put(cacheKey, response.clone()));
   }
 
