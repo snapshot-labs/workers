@@ -25,7 +25,8 @@ async function handleRequest(event, request) {
 
   if (!response) {
     response = await fetch(imageRequest, options);
-    if (response.headers.get("content-type") === 'image/svg+xml') {
+    const type = response.headers.get("content-type");
+    if (type.includes('image/svg+xml') || type.includes('text/html')) {
       response = new Response('Disallowed file extension', { status: 400 })
     } else {
       response = new Response(response.body, response);
