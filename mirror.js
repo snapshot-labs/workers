@@ -13,6 +13,7 @@ async function handleRequest(event) {
   options.cf.image.height = 240;
 
   const imageURL = url.searchParams.get('img');
+  if (!imageURL) return new Response('Missing "img" value', { status: 400 })
 
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
