@@ -29,6 +29,7 @@ async function handleRequest(event) {
   response = new Response(response.body, response);
   // response.headers.append('Cache-Control', 's-maxage=31536000');
   // response.headers.append('Cache-Control', 'max-age=31536000');
+  response.headers.append("content-type", 'image/png')
   response.headers.append('Cache-Control', 's-maxage=60');
   response.headers.append('Cache-Control', 'max-age=60');
   
