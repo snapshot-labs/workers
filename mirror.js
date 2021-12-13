@@ -13,6 +13,7 @@ async function handleRequest(event) {
   options.cf.image.height = 240;
 
   const imageURL = url.searchParams.get('img');
+  if (!imageURL) return new Response('Missing "img" value', { status: 400 })
 
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
@@ -29,6 +30,7 @@ async function handleRequest(event) {
   response = new Response(response.body, response);
   // response.headers.append('Cache-Control', 's-maxage=31536000');
   // response.headers.append('Cache-Control', 'max-age=31536000');
+  response.headers.append("content-type", 'image/png')
   response.headers.append('Cache-Control', 's-maxage=60');
   response.headers.append('Cache-Control', 'max-age=60');
   
